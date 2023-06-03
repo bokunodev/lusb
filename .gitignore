@@ -18,13 +18,13 @@
 
 # Libraries
 *.lib
-*.a
+#*.a
 *.la
 *.lo
 
 # Shared objects (inc. Windows DLLs)
 *.dll
-*.so
+#*.so
 *.so.*
 *.dylib
 
@@ -50,3 +50,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+*.bin
+*o
