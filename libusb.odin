@@ -2,312 +2,102 @@
 package libusb
 
 import "core:mem"
+import "core:c"
 
 foreign import libusb {"system:udev", "./build/lib/libusb-1.0.a"}
+
+@(link_prefix = "libusb_")
 foreign libusb {
-	libusb_init :: proc(ctx: ^libusb_context_ptr) -> int ---
-	libusb_exit :: proc(ctx: libusb_context_ptr) ---
+	init :: proc(ctx: ^^libusb_context) -> c.int ---
+	exit :: proc(ctx: ^libusb_context) ---
 	@(deprecated = "deprecated, use 'libusb_set_option' instead")
-	libusb_set_debug :: proc(ctx: libusb_context_ptr, level: int) ---
-	libusb_get_version :: proc() -> ^libusb_version --- // const
-	libusb_has_capability :: proc(capability: u32) -> int ---
-	libusb_error_name :: proc(errcode: int) -> cstring --- // const
-	libusb_setlocale :: proc(locale: cstring) -> int ---
-	libusb_strerror :: proc(errcode: int) -> cstring --- // const
-	libusb_get_device_list :: proc(ctx: libusb_context_ptr, list: ^[^]libusb_device_ptr) -> int ---
-	libusb_free_device_list :: proc(list: [^]libusb_device_ptr, unref_devices: int) ---
-	libusb_ref_device :: proc(dev: libusb_device_ptr) -> libusb_device_ptr ---
-	libusb_unref_device :: proc(dev: libusb_device_ptr) ---
-	libusb_get_configuration :: proc(dev: libusb_device_handle_ptr, config: ^int) -> int ---
-	libusb_get_device_descriptor :: proc(dev: libusb_device_ptr, desc: ^libusb_device_descriptor) -> int ---
-	libusb_get_active_config_descriptor :: proc(dev: libusb_device_ptr, config: ^^libusb_config_descriptor) -> int ---
-	libusb_get_config_descriptor :: proc(dev: libusb_device_ptr, config_index: u8, config: ^^libusb_config_descriptor) -> int ---
-	libusb_get_config_descriptor_by_value :: proc(dev: libusb_device_ptr, bConfigurationValue: u8, config: ^^libusb_config_descriptor) -> int ---
-	libusb_free_config_descriptor :: proc(config: ^libusb_config_descriptor) ---
-	libusb_get_ss_endpoint_companion_descriptor :: proc(ctx: libusb_context_ptr, endpoint: ^libusb_endpoint_descriptor, ep_comp: ^^libusb_ss_endpoint_companion_descriptor) -> int ---
-	libusb_free_ss_endpoint_companion_descriptor :: proc(ep_comp: ^libusb_ss_endpoint_companion_descriptor) ---
-	libusb_get_bos_descriptor :: proc(dev_handle: libusb_device_handle_ptr, bos: ^^libusb_bos_descriptor) -> int ---
-	libusb_free_bos_descriptor :: proc(bos: ^libusb_bos_descriptor) ---
-	libusb_get_usb_2_0_extension_descriptor :: proc(ctx: libusb_context_ptr, dev_cap: ^libusb_bos_dev_capability_descriptor, usb_2_0_extension: ^^libusb_usb_2_0_extension_descriptor) -> int ---
-	libusb_free_usb_2_0_extension_descriptor :: proc(usb_2_0_extension: ^libusb_usb_2_0_extension_descriptor) ---
-	libusb_get_ss_usb_device_capability_descriptor :: proc(ctx: libusb_context_ptr, dev_cap: ^libusb_bos_dev_capability_descriptor, ss_usb_device_cap: ^^libusb_ss_usb_device_capability_descriptor) -> int ---
-	libusb_free_ss_usb_device_capability_descriptor :: proc(ss_usb_device_cap: ^libusb_ss_usb_device_capability_descriptor) ---
-	libusb_get_container_id_descriptor :: proc(ctx: libusb_context_ptr, dev_cap: ^libusb_bos_dev_capability_descriptor, container_id: ^^libusb_container_id_descriptor) -> int ---
-	libusb_free_container_id_descriptor :: proc(container_id: ^libusb_container_id_descriptor) ---
-	libusb_get_bus_number :: proc(dev: libusb_device_ptr) -> u8 ---
-	libusb_get_port_number :: proc(dev: libusb_device_ptr) -> u8 ---
-	libusb_get_port_numbers :: proc(dev: libusb_device_ptr, port_numbers: [^]u8, port_numbers_len: int) -> int ---
+	set_debug :: proc(ctx: ^libusb_context, level: c.int) ---
+	set_log_cb :: proc(ctx: ^libusb_context, cb: libusb_log_cb, mode: c.int) ---
+	get_version :: proc() ->  /*const*/^libusb_version ---
+	has_capability :: proc(capability: c.uint32_t) -> c.int ---
+	error_name :: proc(errcode: c.int) ->  /*const*/cstring ---
+	setlocale :: proc(const_locale: cstring) -> c.int ---
+	strerror :: proc(errcode: c.int) ->  /*const*/cstring ---
+	get_device_list :: proc(ctx: ^libusb_context, list: ^[^]^libusb_device) -> c.ssize_t ---
+	free_device_list :: proc(list: [^]^libusb_device, unref_devices: c.int) ---
+	ref_device :: proc(dev: ^libusb_device) -> ^libusb_device ---
+	unref_device :: proc(dev: ^libusb_device) ---
+	get_configuration :: proc(dev: ^libusb_device_handle, config: ^c.int) -> c.int ---
+	get_device_descriptor :: proc(dev: ^libusb_device, desc: ^libusb_device_descriptor) -> c.int ---
+	get_active_config_descriptor :: proc(dev: ^libusb_device, config: ^^libusb_config_descriptor) -> c.int ---
+	get_config_descriptor :: proc(dev: ^libusb_device, config_index: c.uint8_t, config: ^^libusb_config_descriptor) -> c.int ---
+	get_config_descriptor_by_value :: proc(dev: ^libusb_device, bConfigurationValue: c.uint8_t, config: ^^libusb_config_descriptor) -> c.int ---
+	free_config_descriptor :: proc(config: ^libusb_config_descriptor) ---
+	get_ss_endpoint_companion_descriptor :: proc(ctx: ^libusb_context, const_endpoint: ^libusb_endpoint_descriptor, ep_comp: ^^libusb_ss_endpoint_companion_descriptor) -> c.int ---
+	free_ss_endpoint_companion_descriptor :: proc(ep_comp: ^libusb_ss_endpoint_companion_descriptor) ---
+	get_bos_descriptor :: proc(dev_handle: ^libusb_device_handle, bos: ^^libusb_bos_descriptor) -> c.int ---
+	free_bos_descriptor :: proc(bos: ^libusb_bos_descriptor) ---
+	get_usb_2_0_extension_descriptor :: proc(ctx: ^libusb_context, dev_cap: ^libusb_bos_dev_capability_descriptor, usb_2_0_extension: ^^libusb_usb_2_0_extension_descriptor) -> c.int ---
+	free_usb_2_0_extension_descriptor :: proc(usb_2_0_extension: ^libusb_usb_2_0_extension_descriptor) ---
+	get_ss_usb_device_capability_descriptor :: proc(ctx: ^libusb_context, dev_cap: ^libusb_bos_dev_capability_descriptor, ss_usb_device_cap: ^^libusb_ss_usb_device_capability_descriptor) -> c.int ---
+	free_ss_usb_device_capability_descriptor :: proc(ss_usb_device_cap: ^libusb_ss_usb_device_capability_descriptor) ---
+	get_container_id_descriptor :: proc(ctx: ^libusb_context, dev_cap: ^libusb_bos_dev_capability_descriptor, container_id: ^^libusb_container_id_descriptor) -> c.int ---
+	free_container_id_descriptor :: proc(container_id: ^libusb_container_id_descriptor) ---
+	get_bus_number :: proc(dev: ^libusb_device) -> c.uint8_t ---
+	get_port_number :: proc(dev: ^libusb_device) -> c.uint8_t ---
+	get_port_numbers :: proc(dev: ^libusb_device, port_numbers: ^c.uint8_t, port_numbers_len: c.int) -> c.int ---
 	@(deprecated = "deprecated, use 'libusb_get_port_numbers' instead")
-	libusb_get_port_path :: proc(ctx: libusb_context_ptr, dev: libusb_device_ptr, path: ^u8, path_length: u8) -> int ---
-	libusb_get_parent :: proc(dev: libusb_device_ptr) -> libusb_device_ptr ---
-	libusb_get_device_address :: proc(dev: libusb_device_ptr) -> u8 ---
-	libusb_get_device_speed :: proc(dev: libusb_device_ptr) -> int ---
-	libusb_get_max_packet_size :: proc(dev: libusb_device_ptr, endpoint: u8) -> int ---
-	libusb_get_max_iso_packet_size :: proc(dev: libusb_device_ptr, endpoint: u8) -> int ---
-	libusb_wrap_sys_device :: proc(ctx: libusb_context_ptr, sys_dev: int, dev_handle: ^libusb_device_handle_ptr) -> int ---
-	libusb_open :: proc(dev: libusb_device_ptr, dev_handle: ^libusb_device_handle_ptr) -> int ---
-	libusb_close :: proc(dev_handle: libusb_device_handle_ptr) ---
-	libusb_get_device :: proc(dev_handle: libusb_device_handle_ptr) -> libusb_device_ptr ---
-	libusb_set_configuration :: proc(dev_handle: libusb_device_handle_ptr, configuration: int) -> int ---
-	libusb_claim_interface :: proc(dev_handle: libusb_device_handle_ptr, interface_number: int) -> int ---
-	libusb_release_interface :: proc(dev_handle: libusb_device_handle_ptr, interface_number: int) -> int ---
-	libusb_open_device_with_vid_pid :: proc(ctx: libusb_context_ptr, vendor_id: u16, product_id: u16) -> libusb_device_handle_ptr ---
-	libusb_set_interface_alt_setting :: proc(dev_handle: libusb_device_handle_ptr, interface_number: int, alternate_setting: int) -> int ---
-	libusb_clear_halt :: proc(dev_handle: libusb_device_handle_ptr, endpoint: u8) -> int ---
-	libusb_reset_device :: proc(dev_handle: libusb_device_handle_ptr) -> int ---
-	libusb_alloc_streams :: proc(dev_handle: libusb_device_handle_ptr, num_streams: u32, endpoints: ^u8, num_endpoints: int) -> int ---
-	libusb_free_streams :: proc(dev_handle: libusb_device_handle_ptr, endpoints: ^u8, num_endpoints: int) -> int ---
-	libusb_dev_mem_alloc :: proc(dev_handle: libusb_device_handle_ptr, length: uint) -> ^u8 ---
-	libusb_dev_mem_free :: proc(dev_handle: libusb_device_handle_ptr, buffer: ^u8, length: uint) -> int ---
-	libusb_kernel_driver_active :: proc(dev_handle: libusb_device_handle_ptr, interface_number: int) -> int ---
-	libusb_detach_kernel_driver :: proc(dev_handle: libusb_device_handle_ptr, interface_number: int) -> int ---
-	libusb_attach_kernel_driver :: proc(dev_handle: libusb_device_handle_ptr, interface_number: int) -> int ---
-	libusb_set_auto_detach_kernel_driver :: proc(dev_handle: libusb_device_handle_ptr, enable: int) -> int ---
-	libusb_alloc_transfer :: proc(iso_packets: int) -> ^libusb_transfer ---
-	libusb_submit_transfer :: proc(transfer: ^libusb_transfer) -> int ---
-	libusb_cancel_transfer :: proc(transfer: ^libusb_transfer) -> int ---
-	libusb_free_transfer :: proc(transfer: ^libusb_transfer) ---
-	libusb_transfer_set_stream_id :: proc(transfer: ^libusb_transfer, stream_id: u32) ---
-	libusb_transfer_get_stream_id :: proc(transfer: ^libusb_transfer) -> u32 ---
-	libusb_control_transfer :: proc(dev_handle: libusb_device_handle_ptr, request_type: u8, bRequest: u8, wValue: u16, wIndex: u16, data: ^u8, wLength: u16, timeout: uint) -> int ---
-	libusb_bulk_transfer :: proc(dev_handle: libusb_device_handle_ptr, endpoint: u8, data: ^u8, length: int, actual_length: ^int, timeout: uint) -> int ---
-	libusb_interrupt_transfer :: proc(dev_handle: libusb_device_handle_ptr, endpoint: u8, data: ^u8, length: int, actual_length: ^int, timeout: uint) -> int ---
-	libusb_get_string_descriptor_ascii :: proc(dev_handle: libusb_device_handle_ptr, desc_index: u8, data: ^u8, length: int) -> int ---
-	libusb_try_lock_events :: proc(ctx: libusb_context_ptr) -> int ---
-	libusb_lock_events :: proc(ctx: libusb_context_ptr) ---
-	libusb_unlock_events :: proc(ctx: libusb_context_ptr) ---
-	libusb_event_handling_ok :: proc(ctx: libusb_context_ptr) -> int ---
-	libusb_event_handler_active :: proc(ctx: libusb_context_ptr) -> int ---
-	libusb_interrupt_event_handler :: proc(ctx: libusb_context_ptr) ---
-	libusb_lock_event_waiters :: proc(ctx: libusb_context_ptr) ---
-	libusb_unlock_event_waiters :: proc(ctx: libusb_context_ptr) ---
-	libusb_wait_for_event :: proc(ctx: libusb_context_ptr, tv: ^timeval) -> int ---
-	libusb_handle_events_timeout :: proc(ctx: libusb_context_ptr, tv: ^timeval) -> int ---
-	libusb_handle_events_timeout_completed :: proc(ctx: libusb_context_ptr, tv: ^timeval, completed: ^int) -> int ---
-	libusb_handle_events :: proc(ctx: libusb_context_ptr) -> int ---
-	libusb_handle_events_completed :: proc(ctx: libusb_context_ptr, completed: ^int) -> int ---
-	libusb_handle_events_locked :: proc(ctx: libusb_context_ptr, tv: ^timeval) -> int ---
-	libusb_pollfds_handle_timeouts :: proc(ctx: libusb_context_ptr) -> int ---
-	libusb_get_next_timeout :: proc(ctx: libusb_context_ptr, tv: ^timeval) -> int ---
-	libusb_get_pollfds :: proc(ctx: libusb_context_ptr) -> [^]^libusb_pollfd ---
-	libusb_free_pollfds :: proc(pollfds: [^]^libusb_pollfd) ---
-	libusb_set_pollfd_notifiers :: proc(ctx: libusb_context_ptr, added_cb: libusb_pollfd_added_cb, removed_cb: libusb_pollfd_removed_cb, user_data: rawptr) ---
-	libusb_hotplug_register_callback :: proc(ctx: libusb_context_ptr, events: int, flags: int, vendor_id: int, product_id: int, dev_class: int, cb_fn: libusb_hotplug_callback_fn, user_data: rawptr, callback_handle: ^libusb_hotplug_callback_handle) -> int ---
-	libusb_hotplug_deregister_callback :: proc(ctx: libusb_context_ptr, callback_handle: libusb_hotplug_callback_handle) ---
-	libusb_hotplug_get_user_data :: proc(ctx: libusb_context_ptr, callback_handle: libusb_hotplug_callback_handle) -> rawptr ---
-	libusb_set_option :: proc(ctx: libusb_context_ptr, #c_vararg option: ..libusb_option) -> int ---
-}
-
-libusb_log_cb :: #type proc "c" (ctx: libusb_context_ptr, level: libusb_log_level, str: cstring)
-libusb_set_log_cb :: #type proc "c" (ctx: libusb_context_ptr, cb: libusb_log_cb, mode: int)
-libusb_pollfd_added_cb :: #type proc "c" (fd: int, events: i16, user_data: rawptr)
-libusb_pollfd_removed_cb :: #type proc "c" (fd: int, user_data: rawptr)
-libusb_transfer_cb_fn :: #type proc "c" (transfer: ^libusb_transfer)
-libusb_hotplug_callback_fn :: #type proc "c" (
-	ctx: libusb_context_ptr,
-	device: libusb_device_ptr,
-	event: libusb_hotplug_event,
-	user_data: rawptr,
-) -> int
-
-libusb_hotplug_callback_handle :: int
-
-libusb_cpu_to_le16 :: #force_inline proc(x: u16) -> u16 {
-	_tmp: struct #raw_union {
-		b8:  [2]u8,
-		b16: u16,
-	}
-
-	_tmp.b8[1] = u8(x >> 8)
-	_tmp.b8[0] = u8(x & 0xff)
-	return _tmp.b16
-}
-
-libusb_control_transfer_get_data :: #force_inline proc(transfer: ^libusb_transfer) -> ^u8 {
-	return (^u8)(mem.ptr_offset(transfer.buffer, LIBUSB_CONTROL_SETUP_SIZE))
-}
-
-libusb_control_transfer_get_setup :: #force_inline proc(transfer: ^libusb_transfer) -> ^libusb_control_setup {
-	return (^libusb_control_setup)(transfer.buffer)
-}
-
-libusb_fill_control_setup :: #force_inline proc(
-	buffer: ^u8,
-	bmRequestType: u8,
-	bRequest: u8,
-	wValue: u16,
-	wIndex: u16,
-	wLength: u16,
-) {
-	setup: ^libusb_control_setup = (^libusb_control_setup)(buffer)
-	setup.bmRequestType = bmRequestType
-	setup.bRequest = bRequest
-	setup.wValue = libusb_cpu_to_le16(wValue)
-	setup.wIndex = libusb_cpu_to_le16(wIndex)
-	setup.wLength = libusb_cpu_to_le16(wLength)
-}
-
-libusb_fill_bulk_transfer :: #force_inline proc(
-	transfer: ^libusb_transfer,
-	dev_handle: libusb_device_handle_ptr,
-	endpoint: u8,
-	buffer: ^u8,
-	length: int,
-	callback: libusb_transfer_cb_fn,
-	user_data: rawptr,
-	timeout: uint,
-) {
-	transfer.dev_handle = dev_handle
-	transfer.endpoint = endpoint
-	transfer.type = u8(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK)
-	transfer.timeout = timeout
-	transfer.buffer = buffer
-	transfer.length = length
-	transfer.user_data = user_data
-	transfer.callback = callback
-}
-
-libusb_fill_control_transfer :: #force_inline proc(
-	transfer: ^libusb_transfer,
-	dev_handle: libusb_device_handle_ptr,
-	buffer: ^u8,
-	callback: libusb_transfer_cb_fn,
-	user_data: rawptr,
-	timeout: uint,
-) {
-	setup := (^libusb_control_setup)(buffer)
-	transfer.dev_handle = dev_handle
-	transfer.endpoint = 0
-	transfer.type = u8(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_CONTROL)
-	transfer.timeout = timeout
-	transfer.buffer = buffer
-
-	if (setup != nil) {
-		transfer.length = int(LIBUSB_CONTROL_SETUP_SIZE + libusb_cpu_to_le16(setup.wLength))
-	}
-
-	transfer.user_data = user_data
-	transfer.callback = callback
-}
-
-libusb_fill_bulk_stream_transfer :: #force_inline proc(
-	transfer: ^libusb_transfer,
-	dev_handle: libusb_device_handle_ptr,
-	endpoint: u8,
-	stream_id: u32,
-	buffer: ^u8,
-	length: int,
-	callback: libusb_transfer_cb_fn,
-	user_data: rawptr,
-	timeout: uint,
-) {
-	libusb_fill_bulk_transfer(transfer, dev_handle, endpoint, buffer, length, callback, user_data, timeout)
-	transfer.type = u8(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK_STREAM)
-	libusb_transfer_set_stream_id(transfer, stream_id)
-}
-
-libusb_fill_interrupt_transfer :: #force_inline proc(
-	transfer: ^libusb_transfer,
-	dev_handle: libusb_device_handle_ptr,
-	endpoint: u8,
-	buffer: ^u8,
-	length: int,
-	callback: libusb_transfer_cb_fn,
-	user_data: rawptr,
-	timeout: uint,
-) {
-	transfer.dev_handle = dev_handle
-	transfer.endpoint = endpoint
-	transfer.type = u8(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_INTERRUPT)
-	transfer.timeout = timeout
-	transfer.buffer = buffer
-	transfer.length = length
-	transfer.user_data = user_data
-	transfer.callback = callback
-}
-
-libusb_fill_iso_transfer :: #force_inline proc(
-	transfer: ^libusb_transfer,
-	dev_handle: libusb_device_handle_ptr,
-	endpoint: u8,
-	buffer: ^u8,
-	length: int,
-	num_iso_packets: int,
-	callback: libusb_transfer_cb_fn,
-	user_data: rawptr,
-	timeout: uint,
-) {
-	transfer.dev_handle = dev_handle
-	transfer.endpoint = endpoint
-	transfer.type = u8(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_ISOCHRONOUS)
-	transfer.timeout = timeout
-	transfer.buffer = buffer
-	transfer.length = length
-	transfer.num_iso_packets = num_iso_packets
-	transfer.user_data = user_data
-	transfer.callback = callback
-}
-
-libusb_set_iso_packet_lengths :: #force_inline proc(transfer: ^libusb_transfer, length: uint) {
-	for i := 0; i < transfer.num_iso_packets; i += 1 {
-		transfer.iso_packet_desc[i].length = length
-	}
-}
-
-libusb_get_iso_packet_buffer :: #force_inline proc(transfer: ^libusb_transfer, packet: uint) -> ^u8 {
-	offset: int = 0
-	_packet: int
-	if (packet > 2147483647) {return nil}
-	_packet = int(packet)
-	if (_packet >= transfer.num_iso_packets) {return nil}
-	for i := 0; i < _packet; i += 1 {offset += int(transfer.iso_packet_desc[i].length)}
-	return (^u8)(mem.ptr_offset(transfer.buffer, offset))
-}
-
-libusb_get_iso_packet_buffer_simple :: #force_inline proc(transfer: ^libusb_transfer, packet: uint) -> ^u8 {
-	_packet: int
-	if (packet > 2147483647) {return nil}
-	_packet = int(packet)
-	if (_packet >= transfer.num_iso_packets) {return nil}
-	return (^u8)(mem.ptr_offset(transfer.buffer, (int(transfer.iso_packet_desc[0].length) * _packet)))
-}
-
-libusb_get_descriptor :: #force_inline proc(
-	dev_handle: libusb_device_handle_ptr,
-	desc_type: u8,
-	desc_index: u8,
-	data: ^u8,
-	length: int,
-) -> int {
-	return libusb_control_transfer(
-		dev_handle,
-		u8(libusb_endpoint_direction.LIBUSB_ENDPOINT_IN),
-		u8(libusb_standard_request.LIBUSB_REQUEST_GET_DESCRIPTOR),
-		u16((desc_type << 8) | desc_index),
-		0,
-		data,
-		u16(length),
-		1000,
-	)
-}
-
-libusb_get_string_descriptor :: #force_inline proc(
-	dev_handle: libusb_device_handle_ptr,
-	desc_index: u8,
-	langid: u16,
-	data: ^u8,
-	length: int,
-) -> int {
-	return libusb_control_transfer(
-		dev_handle,
-		u8(libusb_endpoint_direction.LIBUSB_ENDPOINT_IN),
-		u8(libusb_standard_request.LIBUSB_REQUEST_GET_DESCRIPTOR),
-		u16((u16(libusb_descriptor_type.LIBUSB_DT_STRING) << 8) | u16(desc_index)),
-		langid,
-		data,
-		u16(length),
-		1000,
-	)
+	get_port_path :: proc(ctx: ^libusb_context, dev: ^libusb_device, path: ^c.uint8_t, path_length: c.uint8_t) -> c.int ---
+	get_parent :: proc(dev: ^libusb_device) -> ^libusb_device ---
+	get_device_address :: proc(dev: ^libusb_device) -> c.uint8_t ---
+	get_device_speed :: proc(dev: ^libusb_device) -> c.int ---
+	get_max_packet_size :: proc(dev: ^libusb_device, endpoint: c.uchar) -> c.int ---
+	get_max_iso_packet_size :: proc(dev: ^libusb_device, endpoint: c.uchar) -> c.int ---
+	wrap_sys_device :: proc(ctx: ^libusb_context, sys_dev: c.intptr_t, dev_handle: ^^libusb_device_handle) -> c.int ---
+	open :: proc(dev: ^libusb_device, dev_handle: ^^libusb_device_handle) -> c.int ---
+	close :: proc(dev_handle: ^libusb_device_handle) ---
+	get_device :: proc(dev_handle: ^libusb_device_handle) -> ^libusb_device ---
+	set_configuration :: proc(dev_handle: ^libusb_device_handle, configuration: c.int) -> c.int ---
+	claim_interface :: proc(dev_handle: ^libusb_device_handle, interface_number: c.int) -> c.int ---
+	release_interface :: proc(dev_handle: ^libusb_device_handle, interface_number: c.int) -> c.int ---
+	open_device_with_vid_pid :: proc(ctx: ^libusb_context, vendor_id: c.uint16_t, product_id: c.uint16_t) -> ^libusb_device_handle ---
+	set_interface_alt_setting :: proc(dev_handle: ^libusb_device_handle, interface_number: c.int, alternate_setting: c.int) -> c.int ---
+	clear_halt :: proc(dev_handle: ^libusb_device_handle, endpoint: c.uchar) -> c.int ---
+	reset_device :: proc(dev_handle: ^libusb_device_handle) -> c.int ---
+	alloc_streams :: proc(dev_handle: ^libusb_device_handle, num_streams: c.uint32_t, endpoints: ^c.uchar, num_endpoints: c.int) -> c.int ---
+	free_streams :: proc(dev_handle: ^libusb_device_handle, endpoints: ^c.uchar, num_endpoints: c.int) -> c.int ---
+	dev_mem_alloc :: proc(dev_handle: ^libusb_device_handle, length: c.size_t) -> ^c.uchar ---
+	dev_mem_free :: proc(dev_handle: ^libusb_device_handle, buffer: ^c.uchar, length: c.size_t) -> c.int ---
+	kernel_driver_active :: proc(dev_handle: ^libusb_device_handle, interface_number: c.int) -> c.int ---
+	detach_kernel_driver :: proc(dev_handle: ^libusb_device_handle, interface_number: c.int) -> c.int ---
+	attach_kernel_driver :: proc(dev_handle: ^libusb_device_handle, interface_number: c.int) -> c.int ---
+	set_auto_detach_kernel_driver :: proc(dev_handle: ^libusb_device_handle, enable: c.int) -> c.int ---
+	alloc_transfer :: proc(iso_packets: c.int) -> ^libusb_transfer ---
+	submit_transfer :: proc(transfer: ^libusb_transfer) -> c.int ---
+	cancel_transfer :: proc(transfer: ^libusb_transfer) -> c.int ---
+	free_transfer :: proc(transfer: ^libusb_transfer) ---
+	control_transfer :: proc(dev_handle: ^libusb_device_handle, request_type: c.uint8_t, bRequest: c.uint8_t, wValue: c.uint16_t, wIndex: c.uint16_t, data: ^c.uchar, wLength: c.uint16_t, timeout: c.uint) -> c.int ---
+	transfer_set_stream_id :: proc(transfer: ^libusb_transfer, stream_id: c.uint32_t) ---
+	transfer_get_stream_id :: proc(transfer: ^libusb_transfer) -> c.uint32_t ---
+	get_string_descriptor_ascii :: proc(dev_handle: ^libusb_device_handle, desc_index: c.uint8_t, data: ^c.uchar, length: c.int) -> c.int ---
+	try_lock_events :: proc(ctx: ^libusb_context) -> c.int ---
+	lock_events :: proc(ctx: ^libusb_context) ---
+	unlock_events :: proc(ctx: ^libusb_context) ---
+	event_handling_ok :: proc(ctx: ^libusb_context) -> c.int ---
+	event_handler_active :: proc(ctx: ^libusb_context) -> c.int ---
+	interrupt_event_handler :: proc(ctx: ^libusb_context) ---
+	lock_event_waiters :: proc(ctx: ^libusb_context) ---
+	unlock_event_waiters :: proc(ctx: ^libusb_context) ---
+	wait_for_event :: proc(ctx: ^libusb_context, tv: ^timeval) -> c.int ---
+	handle_events_timeout :: proc(ctx: ^libusb_context, tv: ^timeval) -> c.int ---
+	handle_events_timeout_completed :: proc(ctx: ^libusb_context, tv: ^timeval, completed: ^c.int) -> c.int ---
+	handle_events :: proc(ctx: ^libusb_context) -> c.int ---
+	handle_events_completed :: proc(ctx: ^libusb_context, completed: ^c.int) -> c.int ---
+	handle_events_locked :: proc(ctx: ^libusb_context, tv: ^timeval) -> c.int ---
+	pollfds_handle_timeouts :: proc(ctx: ^libusb_context) -> c.int ---
+	get_next_timeout :: proc(ctx: ^libusb_context, tv: ^timeval) -> c.int ---
+	get_pollfds :: proc(ctx: ^libusb_context) ->  /*const*/[^]^libusb_pollfd ---
+	free_pollfds :: proc(const_pollfds: [^]^libusb_pollfd) ---
+	set_pollfd_notifiers :: proc(ctx: ^libusb_context, added_cb: libusb_pollfd_added_cb, removed_cb: libusb_pollfd_removed_cb, user_data: rawptr) ---
+	hotplug_register_callback :: proc(ctx: ^libusb_context, events: c.int, flags: c.int, vendor_id: c.int, product_id: c.int, dev_class: c.int, cb_fn: libusb_hotplug_callback_fn, user_data: rawptr, callback_handle: ^libusb_hotplug_callback_handle) -> c.int ---
+	hotplug_deregister_callback :: proc(ctx: ^libusb_context, callback_handle: libusb_hotplug_callback_handle) ---
+	hotplug_get_user_data :: proc(ctx: ^libusb_context, callback_handle: libusb_hotplug_callback_handle) -> rawptr ---
+	set_option :: proc(ctx: ^libusb_context, #c_vararg option: ..libusb_option) -> c.int ---
 }
 
 LIBUSB_API_VERSION :: 0x01000109
@@ -324,192 +114,375 @@ LIBUSB_DT_DEVICE_CAPABILITY_SIZE :: 3
 LIBUSB_BT_USB_2_0_EXTENSION_SIZE :: 7
 LIBUSB_BT_SS_USB_DEVICE_CAPABILITY_SIZE :: 10
 LIBUSB_BT_CONTAINER_ID_SIZE :: 20
-LIBUSB_DT_BOS_MAX_SIZE ::
-	(LIBUSB_DT_BOS_SIZE +
-		LIBUSB_BT_USB_2_0_EXTENSION_SIZE +
-		LIBUSB_BT_SS_USB_DEVICE_CAPABILITY_SIZE +
-		LIBUSB_BT_CONTAINER_ID_SIZE)
-
-LIBUSB_ENDPOINT_ADDRESS_MASK :: 0x0f
+LIBUSB_ENDPOINT_ADDRESS_MASK :: 0x0F
 LIBUSB_ENDPOINT_DIR_MASK :: 0x80
 LIBUSB_TRANSFER_TYPE_MASK :: 0x03
-LIBUSB_ISO_SYNC_TYPE_MASK :: 0x0c
+LIBUSB_ISO_SYNC_TYPE_MASK :: 0x0C
 LIBUSB_ISO_USAGE_TYPE_MASK :: 0x30
 LIBUSB_CONTROL_SETUP_SIZE :: size_of(libusb_control_setup)
 LIBUSB_ERROR_COUNT :: 14
 LIBUSB_HOTPLUG_NO_FLAGS :: 0
 LIBUSB_HOTPLUG_MATCH_ANY :: -1
 LIBUSB_OPTION_WEAK_AUTHORITY :: libusb_option.LIBUSB_OPTION_NO_DEVICE_DISCOVERY
-
-libusb_context_ptr :: distinct rawptr
-libusb_device_ptr :: distinct rawptr
-libusb_device_handle_ptr :: distinct rawptr
+LIBUSB_DT_BOS_MAX_SIZE ::
+	(LIBUSB_DT_BOS_SIZE +
+		LIBUSB_BT_USB_2_0_EXTENSION_SIZE +
+		LIBUSB_BT_SS_USB_DEVICE_CAPABILITY_SIZE +
+		LIBUSB_BT_CONTAINER_ID_SIZE)
 
 timeval :: struct {
-	tv_sec:  i64,
-	tv_usec: i64,
+	tv_sec:  c.long,
+	tv_usec: c.long,
 }
 
-list_head :: struct {
-	prev: ^list_head,
-	next: ^list_head,
-}
+libusb_log_cb :: proc(ctx: ^libusb_context, level: libusb_log_level, const_str: cstring)
+libusb_pollfd_removed_cb :: proc(fd: c.int, user_data: rawptr)
+libusb_pollfd_added_cb :: proc(fd: c.int, events: c.short, user_data: rawptr)
+libusb_transfer_cb_fn :: proc(transfer: ^libusb_transfer)
+libusb_hotplug_callback_fn :: proc(
+	ctx: ^libusb_context,
+	device: ^libusb_device,
+	event: libusb_hotplug_event,
+	user_data: rawptr,
+) -> c.int
+
+libusb_hotplug_callback_handle :: c.int
 
 libusb_device_descriptor :: struct {
-	bLength:            u8,
-	bDescriptorType:    u8,
-	bcdUSB:             u16,
-	bDeviceClass:       u8,
-	bDeviceSubClass:    u8,
-	bDeviceProtocol:    u8,
-	bMaxPacketSize0:    u8,
-	idVendor:           u16,
-	idProduct:          u16,
-	bcdDevice:          u16,
-	iManufacturer:      u8,
-	iProduct:           u8,
-	iSerialNumber:      u8,
-	bNumConfigurations: u8,
+	bLength:            c.uint8_t,
+	bDescriptorType:    c.uint8_t,
+	bcdUSB:             c.uint16_t,
+	bDeviceClass:       c.uint8_t,
+	bDeviceSubClass:    c.uint8_t,
+	bDeviceProtocol:    c.uint8_t,
+	bMaxPacketSize0:    c.uint8_t,
+	idVendor:           c.uint16_t,
+	idProduct:          c.uint16_t,
+	bcdDevice:          c.uint16_t,
+	iManufacturer:      c.uint8_t,
+	iProduct:           c.uint8_t,
+	iSerialNumber:      c.uint8_t,
+	bNumConfigurations: c.uint8_t,
 }
 
 libusb_endpoint_descriptor :: struct {
-	bLength:          u8,
-	bDescriptorType:  u8,
-	bEndpointAddress: u8,
-	bmAttributes:     u8,
-	wMaxPacketSize:   u16,
-	bInterval:        u8,
-	bRefresh:         u8,
-	bSynchAddress:    u8,
-	extra:            ^u8,
-	extra_length:     int,
+	bLength:          c.uint8_t,
+	bDescriptorType:  c.uint8_t,
+	bEndpointAddress: c.uint8_t,
+	bmAttributes:     c.uint8_t,
+	wMaxPacketSize:   c.uint16_t,
+	bInterval:        c.uint8_t,
+	bRefresh:         c.uint8_t,
+	bSynchAddress:    c.uint8_t,
+	extra:             /*const*/^c.uchar,
+	extra_length:     c.int,
 }
 
 libusb_interface_descriptor :: struct {
-	bLength:            u8,
-	bDescriptorType:    u8,
-	bInterfaceNumber:   u8,
-	bAlternateSetting:  u8,
-	bNumEndpoints:      u8,
-	bInterfaceClass:    u8,
-	bInterfaceSubClass: u8,
-	bInterfaceProtocol: u8,
-	iInterface:         u8,
-	endpoint:           ^libusb_endpoint_descriptor,
-	extra:              ^u8,
-	extra_length:       int,
+	bLength:            c.uint8_t,
+	bDescriptorType:    c.uint8_t,
+	bInterfaceNumber:   c.uint8_t,
+	bAlternateSetting:  c.uint8_t,
+	bNumEndpoints:      c.uint8_t,
+	bInterfaceClass:    c.uint8_t,
+	bInterfaceSubClass: c.uint8_t,
+	bInterfaceProtocol: c.uint8_t,
+	iInterface:         c.uint8_t,
+	endpoint:            /*const*/^libusb_endpoint_descriptor,
+	extra:               /*const*/^c.uchar,
+	extra_length:       c.int,
 }
 
 libusb_interface :: struct {
-	altsetting:     ^libusb_interface_descriptor,
-	num_altsetting: int,
+	altsetting:      /*const*/^libusb_interface_descriptor,
+	num_altsetting: c.int,
 }
 
 libusb_config_descriptor :: struct {
-	bLength:             u8,
-	bDescriptorType:     u8,
-	wTotalLength:        u16,
-	bNumInterfaces:      u8,
-	bConfigurationValue: u8,
-	iConfiguration:      u8,
-	bmAttributes:        u8,
-	MaxPower:            u8,
-	interface:           ^libusb_interface,
-	extra:               ^u8,
-	extra_length:        int,
+	bLength:             c.uint8_t,
+	bDescriptorType:     c.uint8_t,
+	wTotalLength:        c.uint16_t,
+	bNumInterfaces:      c.uint8_t,
+	bConfigurationValue: c.uint8_t,
+	iConfiguration:      c.uint8_t,
+	bmAttributes:        c.uint8_t,
+	MaxPower:            c.uint8_t,
+	interface:            /*const*/^libusb_interface,
+	extra:                /*const*/^c.uchar,
+	extra_length:        c.int,
 }
 
 libusb_ss_endpoint_companion_descriptor :: struct {
-	bLength:           u8,
-	bDescriptorType:   u8,
-	bMaxBurst:         u8,
-	bmAttributes:      u8,
-	wBytesPerInterval: u16,
+	bLength:           c.uint8_t,
+	bDescriptorType:   c.uint8_t,
+	bMaxBurst:         c.uint8_t,
+	bmAttributes:      c.uint8_t,
+	wBytesPerInterval: c.uint16_t,
 }
 
 libusb_bos_dev_capability_descriptor :: struct {
-	bLength:             u8,
-	bDescriptorType:     u8,
-	bDevCapabilityType:  u8,
-	dev_capability_data: [^]u8,
+	bLength:             c.uint8_t,
+	bDescriptorType:     c.uint8_t,
+	bDevCapabilityType:  c.uint8_t,
+	dev_capability_data: [0]c.uint8_t,
 }
 
 libusb_bos_descriptor :: struct {
-	bLength:         u8,
-	bDescriptorType: u8,
-	wTotalLength:    u16,
-	bNumDeviceCaps:  u8,
-	dev_capability:  [^]^libusb_bos_dev_capability_descriptor,
+	bLength:         c.uint8_t,
+	bDescriptorType: c.uint8_t,
+	wTotalLength:    c.uint16_t,
+	bNumDeviceCaps:  c.uint8_t,
+	dev_capability:  [0]^libusb_bos_dev_capability_descriptor,
 }
 
 libusb_usb_2_0_extension_descriptor :: struct {
-	bLength:            u8,
-	bDescriptorType:    u8,
-	bDevCapabilityType: u8,
-	bmAttributes:       u32,
+	bLength:            c.uint8_t,
+	bDescriptorType:    c.uint8_t,
+	bDevCapabilityType: c.uint8_t,
+	bmAttributes:       c.uint32_t,
 }
 
 libusb_ss_usb_device_capability_descriptor :: struct {
-	bLength:               u8,
-	bDescriptorType:       u8,
-	bDevCapabilityType:    u8,
-	bmAttributes:          u8,
-	wSpeedSupported:       u16,
-	bFunctionalitySupport: u8,
-	bU1DevExitLat:         u8,
-	bU2DevExitLat:         u16,
+	bLength:               c.uint8_t,
+	bDescriptorType:       c.uint8_t,
+	bDevCapabilityType:    c.uint8_t,
+	bmAttributes:          c.uint8_t,
+	wSpeedSupported:       c.uint16_t,
+	bFunctionalitySupport: c.uint8_t,
+	bU1DevExitLat:         c.uint8_t,
+	bU2DevExitLat:         c.uint16_t,
 }
 
 libusb_container_id_descriptor :: struct {
-	bLength:            u8,
-	bDescriptorType:    u8,
-	bDevCapabilityType: u8,
-	bReserved:          u8,
-	ContainerID:        [16]u8,
+	bLength:            c.uint8_t,
+	bDescriptorType:    c.uint8_t,
+	bDevCapabilityType: c.uint8_t,
+	bReserved:          c.uint8_t,
+	ContainerID:        [16]c.uint8_t,
 }
 
 libusb_control_setup :: struct {
-	bmRequestType: u8,
-	bRequest:      u8,
-	wValue:        u16,
-	wIndex:        u16,
-	wLength:       u16,
+	bmRequestType: c.uint8_t,
+	bRequest:      c.uint8_t,
+	wValue:        c.uint16_t,
+	wIndex:        c.uint16_t,
+	wLength:       c.uint16_t,
 }
 
+libusb_context :: distinct struct {}
+libusb_device :: distinct struct {}
+libusb_device_handle :: distinct struct {}
+
 libusb_version :: struct {
-	major:    u16,
-	minor:    u16,
-	micro:    u16,
-	nano:     u16,
-	rc:       cstring,
-	describe: cstring,
+	major:     /*const*/c.uint16_t,
+	minor:     /*const*/c.uint16_t,
+	micro:     /*const*/c.uint16_t,
+	nano:      /*const*/c.uint16_t,
+	rc:        /*const*/cstring,
+	describe:  /*const*/cstring,
 }
 
 libusb_iso_packet_descriptor :: struct {
-	length:        uint,
-	actual_length: uint,
+	length:        c.uint,
+	actual_length: c.uint,
 	status:        libusb_transfer_status,
 }
 
 libusb_transfer :: struct {
-	dev_handle:      libusb_device_handle_ptr,
-	flags:           u8,
-	endpoint:        u8,
-	type:            u8,
-	timeout:         uint,
+	dev_handle:      ^libusb_device_handle,
+	flags:           c.uint8_t,
+	endpoint:        c.uchar,
+	type:            c.uchar,
+	timeout:         c.uint,
 	status:          libusb_transfer_status,
-	length:          int,
-	actual_length:   int,
+	length:          c.int,
+	actual_length:   c.int,
 	callback:        libusb_transfer_cb_fn,
 	user_data:       rawptr,
-	buffer:          ^u8,
-	num_iso_packets: int,
-	iso_packet_desc: [^]libusb_iso_packet_descriptor,
+	buffer:          ^c.uchar,
+	num_iso_packets: c.int,
+	iso_packet_desc: [0]libusb_iso_packet_descriptor,
 }
 
 libusb_pollfd :: struct {
-	fd:     int,
-	events: i16,
+	fd:     c.int,
+	events: c.short,
+}
+
+cpu_to_le16 :: #force_inline proc(const_x: c.uint16_t) -> c.uint16_t {
+	_tmp: struct #raw_union {
+		b8:  [2]c.uint8_t,
+		b16: c.uint16_t,
+	}
+
+	_tmp.b8[1] = c.uint8_t(const_x >> 8)
+	_tmp.b8[0] = c.uint8_t(const_x & 0xff)
+	return _tmp.b16
+}
+
+control_transfer_get_setup :: #force_inline proc(transfer: ^libusb_transfer) -> ^libusb_control_setup {
+	return (^libusb_control_setup)(transfer.buffer)
+}
+
+fill_control_setup :: #force_inline proc(
+	buffer: ^c.uchar,
+	bmRequestType: c.uint8_t,
+	bRequest: c.uint8_t,
+	wValue: c.uint16_t,
+	wIndex: c.uint16_t,
+	wLength: c.uint16_t,
+) {
+	setup := (^libusb_control_setup)(buffer)
+	setup.bmRequestType = bmRequestType
+	setup.bRequest = bRequest
+	setup.wValue = cpu_to_le16(wValue)
+	setup.wIndex = cpu_to_le16(wIndex)
+	setup.wLength = cpu_to_le16(wLength)
+}
+
+fill_control_transfer :: #force_inline proc(
+	transfer: ^libusb_transfer,
+	dev_handle: ^libusb_device_handle,
+	buffer: ^c.uchar,
+	callback: libusb_transfer_cb_fn,
+	user_data: rawptr,
+	timeout: c.uint,
+) {
+	setup := (^libusb_control_setup)(buffer)
+	transfer.dev_handle = dev_handle
+	transfer.endpoint = 0
+	transfer.type = c.uchar(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_CONTROL)
+	transfer.timeout = c.uint32_t(timeout)
+	transfer.buffer = buffer
+
+	if setup != nil {
+		transfer.length = c.int(size_of(libusb_control_setup) + cpu_to_le16(setup.wLength))
+	}
+
+	transfer.user_data = user_data
+	transfer.callback = callback
+}
+
+fill_bulk_transfer :: #force_inline proc(
+	transfer: ^libusb_transfer,
+	dev_handle: ^libusb_device_handle,
+	endpoint: c.uchar,
+	buffer: ^c.uchar,
+	length: c.int,
+	callback: libusb_transfer_cb_fn,
+	user_data: rawptr,
+	timeout: c.uint,
+) {
+	transfer.dev_handle = dev_handle
+	transfer.endpoint = endpoint
+	transfer.type = c.uchar(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK)
+	transfer.timeout = c.uint32_t(timeout)
+	transfer.buffer = buffer
+	transfer.length = length
+	transfer.user_data = user_data
+	transfer.callback = callback
+}
+
+fill_bulk_stream_transfer :: #force_inline proc(
+	transfer: ^libusb_transfer,
+	dev_handle: ^libusb_device_handle,
+	endpoint: c.uchar,
+	stream_id: c.uint32_t,
+	buffer: ^c.uchar,
+	length: c.int,
+	callback: libusb_transfer_cb_fn,
+	user_data: rawptr,
+	timeout: c.uint,
+) {
+	fill_bulk_transfer(transfer, dev_handle, endpoint, buffer, length, callback, user_data, timeout)
+	transfer.type = c.uchar(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK_STREAM)
+	transfer_set_stream_id(transfer, stream_id)
+}
+
+fill_interrupt_transfer :: #force_inline proc(
+	transfer: ^libusb_transfer,
+	dev_handle: ^libusb_device_handle,
+	endpoint: c.uchar,
+	buffer: ^c.uchar,
+	length: c.int,
+	callback: libusb_transfer_cb_fn,
+	user_data: rawptr,
+	timeout: c.uint,
+) {
+	transfer.dev_handle = dev_handle
+	transfer.endpoint = endpoint
+	transfer.type = c.uchar(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_INTERRUPT)
+	transfer.timeout = c.uint32_t(timeout)
+	transfer.buffer = buffer
+	transfer.length = length
+	transfer.user_data = user_data
+	transfer.callback = callback
+}
+
+fill_iso_transfer :: #force_inline proc(
+	transfer: ^libusb_transfer,
+	dev_handle: ^libusb_device_handle,
+	endpoint: c.uchar,
+	buffer: ^c.uchar,
+	length: c.int,
+	num_iso_packets: c.int,
+	callback: libusb_transfer_cb_fn,
+	user_data: rawptr,
+	timeout: c.uint,
+) {
+	transfer.dev_handle = dev_handle
+	transfer.endpoint = endpoint
+	transfer.type = c.uchar(libusb_transfer_type.LIBUSB_TRANSFER_TYPE_ISOCHRONOUS)
+	transfer.timeout = c.uint32_t(timeout)
+	transfer.buffer = buffer
+	transfer.length = length
+	transfer.num_iso_packets = num_iso_packets
+	transfer.user_data = user_data
+	transfer.callback = callback
+}
+
+set_iso_packet_lengths :: #force_inline proc(transfer: ^libusb_transfer, length: c.uint) {
+	for i: c.int = 0; i < transfer.num_iso_packets; i += 1 {
+		transfer.iso_packet_desc[i].length = c.uint(length)
+	}
+}
+
+get_descriptor :: #force_inline proc(
+	dev_handle: ^libusb_device_handle,
+	desc_type: c.uint8_t,
+	desc_index: c.uint8_t,
+	data: ^c.uchar,
+	length: c.int,
+) -> c.int {
+	return control_transfer(
+		dev_handle,
+		c.uchar(libusb_endpoint_direction.LIBUSB_ENDPOINT_IN),
+		c.uchar(libusb_standard_request.LIBUSB_REQUEST_GET_DESCRIPTOR),
+		c.uint16_t((desc_type << 8) | desc_index),
+		0,
+		data,
+		c.uint16_t(length),
+		1000,
+	)
+}
+
+get_string_descriptor :: #force_inline proc(
+	dev_handle: ^libusb_device_handle,
+	desc_index: c.uint8_t,
+	langid: c.uint16_t,
+	data: ^c.uchar,
+	length: c.int,
+) -> c.int {
+	return control_transfer(
+		dev_handle,
+		c.uchar(libusb_endpoint_direction.LIBUSB_ENDPOINT_IN),
+		c.uchar(libusb_standard_request.LIBUSB_REQUEST_GET_DESCRIPTOR),
+		c.uint16_t((c.uint16_t(libusb_descriptor_type.LIBUSB_DT_STRING) << 8) | c.uint16_t(desc_index)),
+		langid,
+		data,
+		c.uint16_t(length),
+		1000,
+	)
 }
 
 libusb_class_code :: enum {
@@ -638,8 +611,8 @@ libusb_speed :: enum {
 }
 
 libusb_error :: enum {
-	NONE                       = 0,
 	LIBUSB_SUCCESS             = 0,
+	NONE                       = LIBUSB_SUCCESS,
 	LIBUSB_ERROR_IO            = -1,
 	LIBUSB_ERROR_INVALID_PARAM = -2,
 	LIBUSB_ERROR_ACCESS        = -3,
@@ -674,10 +647,10 @@ libusb_transfer_status :: enum {
 }
 
 libusb_transfer_flags :: enum {
-	LIBUSB_TRANSFER_SHORT_NOT_OK    = (1 << 0),
-	LIBUSB_TRANSFER_FREE_BUFFER     = (1 << 1),
-	LIBUSB_TRANSFER_FREE_TRANSFER   = (1 << 2),
-	LIBUSB_TRANSFER_ADD_ZERO_PACKET = (1 << 3),
+	LIBUSB_TRANSFER_SHORT_NOT_OK    = 1 << 0,
+	LIBUSB_TRANSFER_FREE_BUFFER     = 1 << 1,
+	LIBUSB_TRANSFER_FREE_TRANSFER   = 1 << 2,
+	LIBUSB_TRANSFER_ADD_ZERO_PACKET = 1 << 3,
 }
 
 libusb_capability :: enum {
@@ -710,8 +683,4 @@ libusb_option :: enum {
 libusb_hotplug_event :: enum {
 	LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED = (1 << 0),
 	LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT    = (1 << 1),
-}
-
-libusb_hotplug_flag :: enum {
-	LIBUSB_HOTPLUG_ENUMERATE = (1 << 0),
 }
