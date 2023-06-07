@@ -1,62 +1,58 @@
 package main
 
-import "core:fmt"
-import "core:log"
-import "core:mem"
-import "core:strings"
+import "core:c"
 import "core:os"
+import "core:fmt"
+import "core:mem"
+import "core:sync"
+import "core:time"
+import "core:strings"
+
+import log "./log"
 import usb ".."
+
+id_vendor :: 0x08ff
+id_product :: 0x0009
 
 main :: proc() {
 	ctx: ^usb.libusb_context
-	log.debug(usb.libusb_error(usb.init(&ctx)))
-	defer usb.exit(ctx)
-
-	devlist: [^]^usb.libusb_device
-	n := usb.get_device_list(ctx, &devlist)
-	if n == 0 {
-		n = int(usb.libusb_error.LIBUSB_ERROR_NOT_FOUND)
-	}
-
-	defer usb.free_device_list(devlist, 1)
-
-	if n < 0 {
-		log.debug(usb.libusb_error(n))
+	if err := usb.libusb_error(usb.libusb_init(&ctx)); err != .NONE {
+		log.fatal(to_string(err))
 		os.exit(1)
 	}
 
-	for dev in devlist[0:n] {
-		manufactur, err := get_manufactur(dev)
-		if err != .NONE {
-			log.debug(err)
-			os.exit(1)
-		}
+	defer usb.libusb_exit(ctx)
 
-		fmt.printf("manufactur: %s\n", manufactur)
-	}
-}
-
-get_manufactur :: proc(dev: ^usb.libusb_device) -> (str: string, err: usb.libusb_error) {
-	desc: usb.libusb_device_descriptor
-	usb.libusb_error(usb.get_device_descriptor(dev, &desc)) or_return
-
-	handle: ^usb.libusb_device_handle
-	usb.libusb_error(usb.open(dev, &handle)) or_return
-	defer usb.close(handle)
-
-	buf: [2 << 10]byte
-	length := usb.get_string_descriptor_ascii(handle, desc.iManufacturer, &buf[0], len(buf))
-	if length < 0 {
-		err = usb.libusb_error(length)
+	handle := usb.libusb_open_device_with_vid_pid(ctx, id_vendor, id_product)
+	if handle == nil {
+		log.error("could not find usb device with the specified VendorID and ProductID")
 		return
 	}
 
-	s, alloc_err := strings.clone_from_bytes(buf[0:length])
-	if alloc_err != nil {
-		log.fatal("mem alloc error")
-		os.exit(1)
+	defer usb.libusb_close(handle)
+}
+
+get_device_info_string :: proc(handle: ^usb.libusb_device_handle, idx: c.uint8_t) -> (string, usb.libusb_error) {
+	buf: [2 << 10]byte
+
+	if idx == 0 {
+		return "[unavailable]", .NONE
 	}
 
-	str = s
-	return
+	length := usb.libusb_get_string_descriptor_ascii(handle, idx, (^c.uchar)(&buf[0]), len(buf))
+	if length < 0 {
+		return "", usb.libusb_error(length)
+	}
+
+	return strings.clone_from_bytes(buf[:length]), .NONE
 }
+
+to_string :: proc {
+	error_to_string,
+}
+
+error_to_string :: proc(err: usb.libusb_error) -> string {
+	return string(usb.libusb_strerror(c.int(err)))
+}
+
+scancodes := "\x00\x00\x00\x00ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\x00"
