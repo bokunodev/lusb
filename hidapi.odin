@@ -2,10 +2,12 @@ package usb
 
 import "core:c"
 
-when #config(HIDAPI_USE_LIBUSB, false) {
+when ODIN_OS == .Linux || ODIN_OS == .OpenBSD || ODIN_OS == .FreeBSD {
 	foreign import hidapi {"system:udev", "./build/lib/libusb-1.0.a", "./build/lib/libhidapi-libusb.a"}
-} else {
+} else when ODIN_OS == .Darwin || ODIN_OS == .Windows {
 	foreign import hidapi {"system:udev", "system:hidraw", "./build/lib/libhidapi-hidraw.a"}
+} else {
+	#panic("unsupported platform")
 }
 
 foreign hidapi {
