@@ -3,9 +3,10 @@ package usb
 import "core:c"
 
 when ODIN_OS == .Linux || ODIN_OS == .OpenBSD || ODIN_OS == .FreeBSD {
-	foreign import hidapi {"system:udev", "./build/lib/libusb-1.0.a", "./build/lib/libhidapi-libusb.a"}
+	// order of the foreign lib matter
+	foreign import hidapi {"system:udev", "./build/lib/libhidapi-libusb.a", "./build/lib/libusb-1.0.a"}
 } else when ODIN_OS == .Darwin || ODIN_OS == .Windows {
-	foreign import hidapi {"system:udev", "system:hidraw", "./build/lib/libhidapi-hidraw.a"}
+	foreign import hidapi {"system:udev", "./build/lib/libhidapi-hidraw.a"}
 } else {
 	#panic("unsupported platform")
 }
@@ -16,7 +17,7 @@ foreign hidapi {
 	hid_enumerate :: proc(vendor_id: c.ushort, product_id: c.ushort) -> ^hid_device_info ---
 	hid_free_enumeration :: proc(devs: ^hid_device_info) ---
 	hid_open :: proc(vendor_id: c.ushort, product_id: c.ushort, serial_number:  /*const*/^c.wchar_t) -> ^hid_device ---
-	hid_open_path :: proc(path:  /*const*/^c.char) -> ^hid_device ---
+	hid_open_path :: proc(path:  /*const*/cstring) -> ^hid_device ---
 	hid_write :: proc(dev: ^hid_device,  /*const*/data: ^c.uchar, length: c.size_t) -> c.int ---
 	hid_read_timeout :: proc(dev: ^hid_device, data: ^c.uchar, length: c.size_t, milliseconds: c.int) -> c.int ---
 	hid_read :: proc(dev: ^hid_device, data: ^c.uchar, length: c.size_t) -> c.int ---
@@ -33,7 +34,7 @@ foreign hidapi {
 	hid_get_report_descriptor :: proc(dev: ^hid_device, buf: ^c.uchar, buf_size: c.size_t) -> c.int ---
 	hid_error :: proc(dev: ^hid_device) ->  /*const*/^c.wchar_t ---
 	hid_version :: proc() ->  /*const*/^hid_api_version ---
-	hid_version_str :: proc() ->  /*const*/^c.char ---
+	hid_version_str :: proc() ->  /*const*/cstring ---
 }
 
 hid_device :: distinct struct {}
@@ -53,7 +54,7 @@ hid_bus_type :: enum {
 }
 
 hid_device_info :: struct {
-	path:                ^c.char,
+	path:                cstring,
 	vendor_id:           c.ushort,
 	product_id:          c.ushort,
 	serial_number:       ^c.wchar_t,

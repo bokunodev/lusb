@@ -1,4 +1,4 @@
-prefix=/home/boku/Public/odin_usb/build
+prefix=/home/boku/Public/odin_hall/usb/build
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

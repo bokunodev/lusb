@@ -38,4 +38,4 @@ dlopen=''
 dlpreopen=''
 
 # Directory that this library needs to be installed in:
-libdir='/home/boku/Public/odin_usb/build/lib'
+libdir='/home/boku/Public/odin_hall/usb/build/lib'
